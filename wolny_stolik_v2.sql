@@ -45,80 +45,13 @@ create database wolny_stolik;
 
 use wolny_stolik;
 
-drop table type_tables;
-
-#tabela użytkowników (tabel logowania) STARA WERSJA
-create table users (
-	id_user int unsigned not null auto_increment,
-    e_mail text not null,
-    pass blob not null,
-    city text not null,
-    primary key (id_user)
-);
-
-#tabela restauracji STARA WERSJA
-create table restaurants (
-	id_rest int unsigned not null auto_increment,
-    trade_name text not null,
-    city text not null,
-    cuisine text,
-    id_table int unsigned not null,
-    qty_type_table int not null,
-    id_rating double not null,
-    primary key (id_rest),
-    foreign key (id_table) references type_tables(id_table)
-);
-
-#tabela rodzaju stolika STARA WERSJA
-create table type_tables(
-	id_table int unsigned not null auto_increment,
-    qty_chairs int unsigned not null,
-    smoking boolean not null,
-    outside boolean not null,
-    primary key (id_table)
-);
-
-#tabela rezerwacji STARA WERSJA
-create table booking (
-	id_book int unsigned not null auto_increment,
-    id_user int unsigned not null,
-    id_rest int unsigned not null,
-    id_table int unsigned not null,
-	date_book datetime not null,
-    primary key (id_book),
-    foreign key (id_user) references users(id_user),
-    foreign key (id_rest) references restaurants(id_rest)
-);
-
-#tabela oceny STARA WERSJA
-create table rating (
-	id_rating int unsigned not null auto_increment,
-	id_user int unsigned not null,
-    id_rest int unsigned not null,
-    value_rating double unsigned not null,
-    primary key (id_rating),
-	foreign key (id_user) references users(id_user),
-    foreign key (id_rest) references restaurants(id_rest)
-);
-
-#tabela zapytanie o dostępności stolika STARA WERSJA
-create table request (
-	id_req int unsigned not null auto_increment,
-    id_book int unsigned not null,
-    id_rest int unsigned not null,
-    date_req datetime not null,
-	primary key (id_req),
-    foreign key (id_book) references booking(id_book),
-	foreign key (id_rest) references restaurants(id_rest)
-);
-
 #
 #
-#	
+#
 #
 #
 
-# tabela miast
+# tabela miast 
 create table cities (
 	id_city int unsigned not null auto_increment,
 	city_name varchar(30) not null,
@@ -430,11 +363,114 @@ drop table occupancy;
 ####################
 ####################
 #################### Przeorganizowano tabele !!!! Z tabeli "restauracji" przeniesiono informację o ilości stolików danego typu
-#################### do tabeli "rodzaj stolika" i z tej tabeli utworzono tabelę główną !!! Stworzono tabelę kelnerzy i 
-#################### Stworzono tabelę kelnerzy i 
+#################### do tabeli "rodzaj stolika" i z tej tabeli utworzono tabelę główną !!!
+#################### Stworzono tabelę kelnerzy i skorelowano ją z tabelą restauracje
 ####################
 ####################
 ####################
+
+
+###
+###  !!! TABELE
+###
+
+# tabela miast
+create table cities (
+	id_city int unsigned not null auto_increment,
+	city_name varchar(30) not null,
+    primary key (id_city)
+);
+
+# tabela rodzajów kuchni
+create table cuisines (
+	id_cuisine int unsigned not null auto_increment,
+    type_cuisine varchar(30) unique not null,
+	primary key (id_cuisine)
+);
+
+# tabela restauracji
+create table restaurants (
+	id_rest int unsigned not null auto_increment,
+    name_rest varchar(30) not null,
+    id_city int unsigned not null,
+    id_cuisine int unsigned not null,
+    primary key (id_rest),
+    foreign key (id_city) references cities(id_city),
+    foreign key (id_cuisine) references cuisines(id_cuisine)
+);
+
+#tabela kelnerzy
+create table waiters (
+	id_wait int unsigned not null auto_increment,
+    login varchar(60) not null,
+    pass varchar(30) not null,
+    date_login datetime not null,
+    id_rest int unsigned not null,
+    primary key (id_wait),
+    foreign key (id_rest) references restaurants(id_rest)
+);
+
+# tabela użytkowników
+create table users (
+	id_user int unsigned not null auto_increment,
+    e_mail varchar(60) unique not null,
+    pass varchar(30) not null,
+    id_city int unsigned not null,
+    date_login datetime not null,
+    primary key (id_user),
+    foreign key (id_city) references cities(id_city)
+);
+
+# tabela oceny
+create table rating (
+	id_rating int unsigned not null auto_increment,
+	id_user int unsigned not null,
+    id_rest int unsigned not null,
+    value_rating int unsigned not null,
+    primary key (id_rating),
+	foreign key (id_user) references users(id_user),
+    foreign key (id_rest) references restaurants(id_rest)
+);
+
+# tabela rodzajów stolików TABELA GŁÓWNA
+create table type_tables(
+	id_table int unsigned not null auto_increment,
+    qty_chairs int not null,
+    smooking boolean not null,
+    outside boolean not null,
+    id_rest int unsigned not null,
+    qty_type_table int not null,
+    primary key (id_table),
+    foreign key (id_rest) references restaurants(id_rest)
+);
+
+# tabela rezerwacji
+create table booking (
+	id_booking int unsigned not null auto_increment,
+    id_user int unsigned not null,
+    id_table int unsigned not null,
+	date_book_start datetime not null,
+    date_book_stop datetime not null,
+    primary key (id_booking),
+    foreign key (id_user) references users(id_user),
+    foreign key (id_table) references type_tables(id_table)
+);
+
+# tabela zajętości stolika w danej restauracj w chwili obecnej
+create table occupancy (
+	id_occ int unsigned not null auto_increment,
+    id_table int unsigned not null,
+    id_wait int unsigned not null,
+    time_occ_start datetime not null,
+    time_occ_stop datetime not null,
+    primary key (id_occ),
+    foreign key (id_table) references type_tables(id_table),
+    foreign key (id_wait) references waiters(id_wait)
+);
+
+###
+###
+###
 
 # wyświetlenie zawartości tabel
 select * from cities order by id_city;
@@ -451,30 +487,30 @@ select * from waiters order by id_wait;
 # dodanie rezerwacji przez użytkownika
 create trigger add_booking
 	after insert on booking
-	for each row update restaurants
-		set restaurants.qty_type_table = restaurants.qty_type_table - 1
-		where restaurants.id_rest = new.id_rest;
+	for each row update type_tables
+		set type_tables.qty_type_table = type_tables.qty_type_table - 1
+		where type_tables.id_table = new.id_table;
         
 # anulowanie rezerwacji przez użytkownika
 create trigger rm_booking
 	after delete on booking
 	for each row update restaurants
-		set restaurants.qty_type_table = restaurants.qty_type_table + 1
-		where restaurants.id_rest = old.id_rest;
+		set type_tables.qty_type_table = type_tables.qty_type_table + 1
+		where type_tables.id_table = old.id_table;
         
 # dodanie zajętość stolika przez restauracje (tzn. zajętość stolika jest wynikiem otwarcia rachunku przez obsługę w systemie restauracji)
 create trigger add_occ
 	after insert on occupancy
     for each row update restaurants
-		set restaurants.qty_type_table = restaurants.qty_type_table - 1
-        where restaurants.id_rest = new.id_rest;
+		set type_tables.qty_type_table = type_tables.qty_type_table - 1
+        where type_tables.id_table = new.id_table;
 
 # dodające rezerwacje wykonane przez restauracje (
 create trigger rm_occ
 	after insert on occupancy
 	for each row update restaurants
-		set restaurants.qty_type_table = restaurants.qty_type_table + 1
-        where restaurants.id_rest = old.id_rest;
+		set type_tables.qty_type_table = type_tables.qty_type_table + 1
+        where type_tables.id_table = old.id_table;
         
         
         
