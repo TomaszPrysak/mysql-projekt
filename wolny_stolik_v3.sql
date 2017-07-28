@@ -319,9 +319,26 @@ insert into rating (id_user, id_rest, value_rating) values (24, 6, 8.8);
 insert into rating (id_user, id_rest, value_rating) values (25, 7, 4.7);
 insert into rating (id_user, id_rest, value_rating) values (26, 7, 7.0);
 insert into rating (id_user, id_rest, value_rating) values (27, 8, 6.7);
- 
+
+# rekordy w tabeli rezerwacje
+insert into booking (id_user, id_table, date_book_start, date_book_stop) values (1, 8, '2017-08-10 20:00', '2017-08-10 22:00');
+
+# rekordy w tabeli zajętości
+
+
 ###
-###  !!! Operacje użyteczne
+###  !!! Zapytania
+### 
+
+# zapytanie w celu wyświetlenia nazw restauracji w mieście
+select city_name as 'Miasto', name_rest as 'Nazwa restauracji' from cities natural left join restaurants;
+
+select city_name as 'Miasto', name_rest as 'Nazwa restauracji' from cities natural left join restaurants where city_name = 'Warszawa';
+select city_name as 'Miasto', name_rest as 'Nazwa restauracji' from cities natural left join restaurants where city_name = 'Kraków';
+select city_name as 'Miasto', name_rest as 'Nazwa restauracji' from cities natural left join restaurants where city_name = 'Katowice';
+
+###
+###  !!! Zapytania "proste"
 ###    
         
 # wyświetlenie zawartości tabel
@@ -336,12 +353,12 @@ select * from occupancy order by id_occ;
 select * from waiters order by id_wait;
         
 # usuwanie tabel w kolejności
-drop table rating;
-drop table booking;
-drop table users;
-drop table occupancy;
-drop table type_tables;
-drop table waiters;
-drop table restaurants;
-drop table cities;
-drop table cuisines;
+#drop table rating;
+#drop table booking;
+#drop table users;
+#drop table occupancy;
+#drop table type_tables;
+#drop table waiters;
+#drop table restaurants;
+#drop table cities;
+#drop table cuisines;
