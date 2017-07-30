@@ -4,7 +4,7 @@ Projekt mySQL w ramach warsztatów Back-end Developer ReaktorPWN
 
 UWAGA !!!
 
-Aktualna wersja bazy danych to: wolny_stolik_v3
+Aktualna wersja bazy danych to: wolny_stolik_v4
 
 Na koñcu skryptu znajduj¹ siê, zakomentowane, polecenia do usuwania poszczególnych tabel. W razie koniecznoœci ich u¿ycia nale¿y skasowaæ "#" przed poleceniem.
 
