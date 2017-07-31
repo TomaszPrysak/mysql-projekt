@@ -1,4 +1,4 @@
-# version_4 2017-08-31 00:34
+# version_4.1 2017-07-31 22:07
 
 ###
 ###  !!! BAZA DANYCH
@@ -100,7 +100,6 @@ create table occupancy (
     id_table int unsigned not null,
     id_wait int unsigned not null,
     time_occ_start datetime not null,
-    time_occ_stop datetime not null,
     primary key (id_occ),
     foreign key (id_table) references type_tables(id_table),
     foreign key (id_wait) references waiters(id_wait)
@@ -582,15 +581,6 @@ insert into rating (id_user, id_rest, value_rating) values (40,26,6.9);
 insert into rating (id_user, id_rest, value_rating) values (36,26,8.3);
 insert into rating (id_user, id_rest, value_rating) values (37,26,7.9);
 
-
-# rekordy w tabeli rezerwacje
-insert into booking (id_user, id_table, date_book_start, date_book_stop) values (1, 8, '2017-08-10 20:00', '2017-08-10 22:00');
-insert into booking (id_user, id_table, date_book_start, date_book_stop) values (2, 8, '2017-08-10 20:00', '2017-08-10 22:00');
-insert into booking (id_user, id_table, date_book_start, date_book_stop) values (3, 8, '2017-08-10 20:00', '2017-08-10 22:00');
-
-# rekordy w tabeli zajętości
-
-
 ###
 ###  !!! Zapytania
 ### 
@@ -634,18 +624,25 @@ select city_name as 'Miasto', rest_name as 'Nazwa restauracji', round(avg(value_
 # zapytania o rodzaj kuchni
 select city_name as 'Miasto', rest_name as 'Nazwa restauracji', type_cuisine as 'Rodzaj kuchni' from restaurants natural right join cuisines natural left join cities;
 
+# sprawdzenie statusu zajętości stolików w dniu dzisiejszym 
+select nr_table, qty_chairs, time_occ_start, time_occ_stop from occupancy natural left join type_tables;
+
 #
 # Zapytania wykonywane od kelnerów
 #
 
-# wyświetlenie rezerwacji stolików dokonanych przez użytkowników (wszystkich rezerwacji)
+# wyświetlenie rezerwacji stolików dokonanych przez użytkowników (wszystkich rezerwacji, bez względu na datę)
 select e_mail, nr_table, date_book_start, date_book_stop from booking natural left join users natural left join type_tables order by e_mail;
 # wyświetlenie rezerwacji stolików dokonanych przez użytkowników w konkretnym dniu
 select e_mail, nr_table, date_book_start, date_book_stop from booking natural left join users natural left join type_tables where date_format(date_book_start, '%Y-%m-%d') = '2017-08-10' order by e_mail;
+# wyświetla podgląd rezerwacji stolików w dniu wysłyania zapytania (przydatne w momencie kiedy kelner chce wyświetlić ilość rezerwacji w dniu dzisiejszym):
+select e_mail, nr_table, date_book_start, date_book_stop from booking natural left join users natural left join type_tables where date_format(date_book_start, '%Y-%m-%d') = current_date() order by e_mail;
 
 ###
 ###  !!! Zapytania proste do pomocy
-###           
+###    
+
+select count(*) from type_tables;        
         
 # wyświetlenie zawartości tabel
 select * from cities order by id_city;
