@@ -1,4 +1,4 @@
-# version_4.1 2017-08-01 00:21
+# version_4.1 2017-08-02 17:00
 
 ###
 ###  !!! BAZA DANYCH
@@ -597,21 +597,24 @@ insert into occupancy (id_table, id_wait, time_occ_start) values (8, 2, now());
 insert into occupancy (id_table, id_wait, time_occ_start) values (6, 1, now());
 insert into occupancy (id_table, id_wait, time_occ_start) values (4, 4, now());
 
-delete from occupancy where id_table = 8;
-
 ###
 ###  !!! Zapytania
 ### 
 
 ##
+## Zapytania do autoryzacji 
+##
+
+# zapytanie do bazy danych w celu wyszukania konkretnego użytkownika jego loginu i hasła, wykorzystane w celu autoryzacji
+select e_mail, pass from users where e_mail = 'user1_1@gmail.com';
+
+select login, pass from waiters where login = 'waiter_zap1';
+
+##
 ## Zapytania wykomywane od użytkowników
 ##
 
-
-## zapytania proste
-
-
-# zapytanie o nazwe restauracji w danym mieście
+# zapytanie o restaurację w danym mieście
 
 # wszystkie restauracjie
 select city_name as 'Miasto', rest_name as 'Nazwa restauracji;' from restaurants natural left join cities;
@@ -622,7 +625,7 @@ select city_name as 'Miasto', rest_name as 'Nazwa restauracji;' from restaurants
 # restauracje z Katowic
 select city_name as 'Miasto', rest_name as 'Nazwa restauracji;' from restaurants natural left join cities where city_name = 'Katowice';
 
-# zapytania o ilość stolików w restauracji (pomijając rezerwacje i zajętość stolika)
+# zapytania o ilość stolików w restauracji (pomijając rezerwacje "booking" i zajętość stolika "occupancy")
 
 # ilości stolików i ilości krzeseł przy tym stoliku w restauracji
 select city_name as 'Miasto', rest_name  as 'Nazwa restauracji', qty_chairs as 'Ilość krzeseł przy stoliku', count(qty_chairs) as 'Ilość stolików z określoną ilością krzeseł' from restaurants natural right join type_tables natural left join cities group by id_rest, qty_chairs;
@@ -649,27 +652,30 @@ select city_name as 'Miasto', rest_name as 'Nazwa restauracji', round(avg(value_
 # zapytania o rodzaj kuchni
 select city_name as 'Miasto', rest_name as 'Nazwa restauracji', type_cuisine as 'Rodzaj kuchni' from restaurants natural right join cuisines natural left join cities;
 
+# zapytania o rezerwację stolika
 
-## zapytania złożone o zajętość stolika w czasie rzeczywistym
 
 
-# sprawdzenie statusu zajętości stolików w czasie rzeczywistym
-select city_name as 'Miasto', rest_name as 'Nazwa restauracji', nr_table as 'Numer stolika', qty_chairs 'Ilość krzeseł przy stoliku', case when time_occ_start < now() then 'stolik zajęty' end as 'Status zajętości stolika' from occupancy natural left join type_tables natural left join restaurants natural left join cities;
+# zapytania o zajętość stolika
+
+# sprawdzenie statusu zajętości stolików 
+select city_name as 'Miasto', rest_name as 'Nazwa restauracji', nr_table as 'Numer stolika', qty_chairs 'Ilość krzeseł przy stoliku', case when time_occ_start < now() then 'stolik zajęty' end as 'Status zajętości stolika' from occupancy natural join type_tables natural join restaurants natural join cities;
+select city_name as 'Miasto', rest_name as 'Nazwa restauracji', nr_table as 'Numer stolika', qty_chairs 'Ilość krzeseł przy stoliku', 'stolik zajęty' from occupancy natural join type_tables natural join restaurants natural join cities;
 
 # sprawdzenie dostepności stolików odliczając te które są zajęte
-# poniższe zapytanie dotyczące konkretnej restauracji i konrketnego typou stolika (wykorzystano where)
+# poniższe zapytanie dotyczące konkretnej restauracji i konrketnego typou stolika
 select rest_name as 'Nazwa restauracji', qty_chairs as 'Ilość krzeseł przy stoliku', (select count(qty_chairs) from type_tables natural left join restaurants where rest_name = 'Zapiecek' and qty_chairs = 2 group by id_rest, qty_chairs) - (select count(qty_chairs) from occupancy natural left join restaurants natural left join type_tables where rest_name = 'Zapiecek' and qty_chairs = 2 group by rest_name, qty_chairs order by rest_name desc) as 'Dostępna ilość stolików' from restaurants natural left join type_tables where rest_name = 'Zapiecek' and qty_chairs = 2 group by rest_name, qty_chairs;
 select rest_name as 'Nazwa restauracji', qty_chairs as 'Ilość krzeseł przy stoliku', (select count(qty_chairs) from type_tables natural left join restaurants where rest_name = 'Zapiecek' and qty_chairs = 4 group by id_rest, qty_chairs) - (select count(qty_chairs) from occupancy natural left join restaurants natural left join type_tables where rest_name = 'Zapiecek' and qty_chairs = 4 group by rest_name, qty_chairs order by rest_name desc) as 'Dostępna ilość stolików' from restaurants natural left join type_tables where rest_name = 'Zapiecek' and qty_chairs = 4 group by rest_name, qty_chairs;
 select rest_name as 'Nazwa restauracji', qty_chairs as 'Ilość krzeseł przy stoliku', (select count(qty_chairs) from type_tables natural left join restaurants where rest_name = 'Zapiecek' and qty_chairs = 6 group by id_rest, qty_chairs) - (select count(qty_chairs) from occupancy natural left join restaurants natural left join type_tables where rest_name = 'Zapiecek' and qty_chairs = 6 group by rest_name, qty_chairs order by rest_name desc) as 'Dostępna ilość stolików' from restaurants natural left join type_tables where rest_name = 'Zapiecek' and qty_chairs = 6 group by rest_name, qty_chairs;
 select rest_name as 'Nazwa restauracji', qty_chairs as 'Ilość krzeseł przy stoliku', (select count(qty_chairs) from type_tables natural left join restaurants where rest_name = 'Zapiecek' and qty_chairs = 8 group by id_rest, qty_chairs) - (select count(qty_chairs) from occupancy natural left join restaurants natural left join type_tables where rest_name = 'Zapiecek' and qty_chairs = 8 group by rest_name, qty_chairs order by rest_name desc) as 'Dostępna ilość stolików' from restaurants natural left join type_tables where rest_name = 'Zapiecek' and qty_chairs = 8 group by rest_name, qty_chairs;
 
-# całkowita ilość stolików o określonej liczbie krzeseł w konkretnej restauracji (wykorzystano where)
+# całkowita ilość stolików o określonej liczbie krzeseł w konkretnej restauracji
 select count(qty_chairs) from type_tables natural left join restaurants where rest_name = 'Zapiecek' and qty_chairs = 2 group by id_rest, qty_chairs;
 select count(qty_chairs) from type_tables natural left join restaurants where rest_name = 'Zapiecek' and qty_chairs = 4 group by id_rest, qty_chairs;
 select count(qty_chairs) from type_tables natural left join restaurants where rest_name = 'Zapiecek' and qty_chairs = 6 group by id_rest, qty_chairs;
 select count(qty_chairs) from type_tables natural left join restaurants where rest_name = 'Zapiecek' and qty_chairs = 8 group by id_rest, qty_chairs;
 
-# sprawdza ilość zajętych stolików
+# sprawdza ilość zajętych stolików danego typu w danej restauracji
 select city_name as 'Miasto', rest_name as 'Nazwa restauracji', qty_chairs as 'Ilość krzeseł przy stoliku', count(qty_chairs) as 'Ilosc zajętych stolików z określoną ilością krzeseł' from occupancy natural join restaurants natural join type_tables natural join cities group by rest_name, qty_chairs order by city_name desc, rest_name desc;
 
 select count(qty_chairs) from occupancy natural left join restaurants natural left join type_tables where rest_name = 'Zapiecek' and qty_chairs = 2 group by rest_name, qty_chairs order by rest_name desc;
@@ -688,9 +694,12 @@ select e_mail, nr_table, date_book_start, date_book_stop from booking natural le
 # wyświetla rezerwację stolików w dniu dzisiejszym, aby sprawdzić ile jest dokonanych rezerwacji z wyprzedzeniem:
 select e_mail, nr_table, date_book_start, date_book_stop from booking natural left join users natural left join type_tables where date_format(date_book_start, '%Y-%m-%d') = current_date() order by e_mail;
 
+
 ###
 ###  !!! Zapytania proste do pomocy
-###      
+###    
+
+select count(*) from type_tables;        
         
 # wyświetlenie zawartości tabel
 select * from cities order by id_city;
