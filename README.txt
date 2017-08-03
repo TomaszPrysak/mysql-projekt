@@ -4,7 +4,9 @@ Projekt mySQL w ramach warsztatów Back-end Developer ReaktorPWN
 
 UWAGA !!!
 
-Aktualna wersja bazy danych to: wolny_stolik_v4
+Aktualna wersja bazy danych to: "wolny_stolik_v4.5".
+
+Plik "wolny_stolik_v4.5_rekordy" zawiera polecenia insert do tworznie rekordów w bazie danych.
 
 Na koñcu skryptu znajduj¹ siê, zakomentowane, polecenia do usuwania poszczególnych tabel. W razie koniecznoœci ich u¿ycia nale¿y skasowaæ "#" przed poleceniem.
 
