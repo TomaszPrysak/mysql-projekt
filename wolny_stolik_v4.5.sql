@@ -1,4 +1,4 @@
-# version_4.5 2017-08-03 21:37
+# version_4.5 2017-08-05 00:53
 
 ###
 ###  !!! BAZA DANYCH
@@ -114,14 +114,17 @@ create table occupancy (
 ##
 
 # zapytanie do bazy danych w celu wyszukania konkretnego użytkownika jego loginu i hasła, wykorzystane w celu autoryzacji
-select e_mail from users where e_mail = 'user1_1@gmail.com';
-select pass from users where e_mail = 'user1_1@gmail.com';
+select e_mail, pass from users where pass = 'user1_1pass';
 
 select login, pass from waiters where login = 'waiter_zap1';
 
 ##
 ## Zapytania wykomywane od użytkowników
 ##
+
+# zapytanie o wypisanie miast
+
+select * from cities;
 
 # zapytanie o restaurację w danym mieście
 
@@ -207,7 +210,8 @@ select e_mail, nr_table, date_book_start, date_book_stop from booking natural le
 ###
 ###  !!! Zapytania proste do pomocy
 ###    
-        
+
+select count(*) from type_tables;        
         
 # wyświetlenie zawartości tabel
 select * from cities order by id_city;
@@ -219,3 +223,54 @@ select * from booking order by id_booking;
 select * from rating order by id_rating;
 select * from occupancy order by id_occ;
 select * from waiters order by id_wait;
+
+
+
+#### NIE PRZESYŁAĆ W GOTOWYM PLIKU
+
+# usuwanie zawartości tabeli
+delete from occupancy;
+        
+# usuwanie tabel w tej kolejności
+drop table rating;
+drop table booking;
+drop table users;
+drop table occupancy;
+drop table type_tables;
+drop table waiters;
+drop table restaurants;
+drop table cities;
+drop table cuisines;
+
+###
+###  !!! Triggery (UWAGA!!! przemyśleć je)
+###
+
+### trigery (do poprawki):
+# dodanie rezerwacji przez użytkownika
+create trigger add_booking
+	after insert on booking
+	for each row update type_tables
+		set type_tables.qty_type_table = type_tables.qty_type_table - 1
+		where type_tables.id_table = new.id_table;
+        
+# anulowanie rezerwacji przez użytkownika
+create trigger rm_booking
+	after delete on booking
+	for each row update restaurants
+		set type_tables.qty_type_table = type_tables.qty_type_table + 1
+		where type_tables.id_table = old.id_table;
+        
+# dodanie zajętość stolika przez restauracje (tzn. zajętość stolika jest wynikiem otwarcia rachunku przez obsługę w systemie restauracji)
+create trigger add_occ
+	after insert on occupancy
+    for each row update restaurants
+		set type_tables.qty_type_table = type_tables.qty_type_table - 1
+        where type_tables.id_table = new.id_table;
+
+# dodające rezerwacje wykonane przez restauracje (
+create trigger rm_occ
+	after insert on occupancy
+	for each row update restaurants
+		set type_tables.qty_type_table = type_tables.qty_type_table + 1
+        where type_tables.id_table = old.id_table;
