@@ -1,4 +1,4 @@
-# version_4.5 2017-08-05 00:53
+# version_4.5 2017-08-07 01:01
 
 ###
 ###  !!! BAZA DANYCH
@@ -157,7 +157,10 @@ select city_name as 'Miasto', rest_name as 'Nazwa restauracji', count(id_rest) a
 # wypisuje każdą ocenę otrzymaną przez restaurację
 select city_name as 'Miasto', rest_name as 'Nazwa restauracji', e_mail as 'Użytkownik', value_rating 'Ocena' from restaurants natural left join rating natural left join cities natural left join users;
 # wyświetla średnią ocenę restauracji spośród otrzymanych
-select city_name as 'Miasto', rest_name as 'Nazwa restauracji', round(avg(value_rating),1) as 'Ocena' from restaurants natural left join rating natural left join cities group by rest_name order by city_name desc;
+select id_rest as 'Id restauracji', city_name as 'Miasto', rest_name as 'Nazwa restauracji', round(avg(value_rating),1) as 'Ocena' from restaurants natural left join rating natural left join cities where city_name = 'Warszawa' group by rest_name order by city_name desc, Ocena desc;
+
+select id_rest as 'Id restauracji', rest_name as 'Nazwa restauracji', type_cuisine as 'Rodzaj kuchni', round(avg(value_rating),1) as 'Ocena' from restaurants natural left join rating natural left join cities natural right join cuisines  where city_name = 'Warszawa' group by rest_name order by city_name desc, Ocena desc;
+
 # wyświetla restauracje ze średnią oceną powyżej x (np. 5.0)
 select city_name as 'Miasto', rest_name as 'Nazwa restauracji', round(avg(value_rating),1) as 'Ocena' from restaurants natural left join rating natural left join cities group by rest_name having round(avg(value_rating),1) > 5.0 order by city_name desc ;
 
@@ -223,54 +226,3 @@ select * from booking order by id_booking;
 select * from rating order by id_rating;
 select * from occupancy order by id_occ;
 select * from waiters order by id_wait;
-
-
-
-#### NIE PRZESYŁAĆ W GOTOWYM PLIKU
-
-# usuwanie zawartości tabeli
-delete from occupancy;
-        
-# usuwanie tabel w tej kolejności
-drop table rating;
-drop table booking;
-drop table users;
-drop table occupancy;
-drop table type_tables;
-drop table waiters;
-drop table restaurants;
-drop table cities;
-drop table cuisines;
-
-###
-###  !!! Triggery (UWAGA!!! przemyśleć je)
-###
-
-### trigery (do poprawki):
-# dodanie rezerwacji przez użytkownika
-create trigger add_booking
-	after insert on booking
-	for each row update type_tables
-		set type_tables.qty_type_table = type_tables.qty_type_table - 1
-		where type_tables.id_table = new.id_table;
-        
-# anulowanie rezerwacji przez użytkownika
-create trigger rm_booking
-	after delete on booking
-	for each row update restaurants
-		set type_tables.qty_type_table = type_tables.qty_type_table + 1
-		where type_tables.id_table = old.id_table;
-        
-# dodanie zajętość stolika przez restauracje (tzn. zajętość stolika jest wynikiem otwarcia rachunku przez obsługę w systemie restauracji)
-create trigger add_occ
-	after insert on occupancy
-    for each row update restaurants
-		set type_tables.qty_type_table = type_tables.qty_type_table - 1
-        where type_tables.id_table = new.id_table;
-
-# dodające rezerwacje wykonane przez restauracje (
-create trigger rm_occ
-	after insert on occupancy
-	for each row update restaurants
-		set type_tables.qty_type_table = type_tables.qty_type_table + 1
-        where type_tables.id_table = old.id_table;
