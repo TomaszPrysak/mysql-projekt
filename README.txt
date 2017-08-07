@@ -6,7 +6,7 @@ UWAGA !!!
 
 Aktualna wersja bazy danych to: "wolny_stolik_v4.5".
 
-Plik "wolny_stolik_v4.5_rekordy" zawiera polecenia insert do tworznie rekordów w bazie danych.
+Plik "wolny_stolik_v4.5_rekordy" zawiera polecenia insert do tworzenia samych rekordów w bazie danych.
 
 Na koñcu skryptu znajduj¹ siê, zakomentowane, polecenia do usuwania poszczególnych tabel. W razie koniecznoœci ich u¿ycia nale¿y skasowaæ "#" przed poleceniem.
 
@@ -24,3 +24,5 @@ a) rezerwacja z wyprzedzeniem 15-minutowym (je¿eli rezerwacja mia³aby nast¹piæ p
 b) rezerwacja na konkretny dzieñ i godzinê (inny dzieñ ni¿ aktualny),
 3. Zmianê, anulowanie rezerwacji,
 4. Wystawienie oceny restauracji.
+
+WRAZ Z ROZWOJEM PROJEKTU W PYTHONie ZWIÊSZA SIÊ RÓWNIE¯ ILOŒÆ ZAPYTAÑ W BAZIE DANYCH
