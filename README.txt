@@ -1,27 +1,20 @@
-Projekt mySQL w ramach warsztatów Back-end Developer ReaktorPWN
-
+Baza danych do aplikacji tworzonej w Python
 
 
 UWAGA !!!
 
 Aktualna wersja bazy danych to: "wolny_stolik_v4.5".
 
-Plik "wolny_stolik_v4.5_rekordy" zawiera polecenia insert do tworzenia samych rekordów w bazie danych.
+Plik "wolny_stolik_v4.5_rekordy" zawiera polecenia "insert" do tworzenia samych rekordów w bazie danych.
 
-Na koñcu skryptu znajduj¹ siê, zakomentowane, polecenia do usuwania poszczególnych tabel. W razie koniecznoœci ich u¿ycia nale¿y skasowaæ "#" przed poleceniem.
+Za³o¿enia (wstêpne):	
 
-ZA£O¯ENIA !!!
-
-Baza danych aplikacji "Wolny stolik"
-
-Za³o¿enia aplikacji (wstêpne):	
-
-1. Wyœwietlenie w danym mieœcie restauracji wraz ze statusem zajêtoœci stolika (mo¿liwoœæ filtrowania po rodzaju œwiadczonej kuchni, œredniej ocenie lokalu), 
+1. Wyœwietlenie w danym mieœcie restauracji wraz ze statusem zajêtoœci stolika w danej chwili oraz z kalendarzem rezerwacji 
 
 2. Mo¿liwoœæ zarezerwowania stolika w dwóch trybach:
 
-a) rezerwacja z wyprzedzeniem 15-minutowym (je¿eli rezerwacja mia³aby nast¹piæ przed godzin¹ 24:00 tego samego dnia),
-b) rezerwacja na konkretny dzieñ i godzinê (inny dzieñ ni¿ aktualny),
+a) rezerwacja z wyprzedzeniem 15-minutowym,
+b) rezerwacja na konkretny dzieñ i godzinê,
 3. Zmianê, anulowanie rezerwacji,
 4. Wystawienie oceny restauracji.
 

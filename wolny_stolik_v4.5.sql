@@ -1,4 +1,4 @@
-# version_4.5 2017-08-07 01:01
+# version_4.5 2017-08-09 00:37
 
 ###
 ###  !!! BAZA DANYCH
@@ -114,9 +114,11 @@ create table occupancy (
 ##
 
 # zapytanie do bazy danych w celu wyszukania konkretnego użytkownika jego loginu i hasła, wykorzystane w celu autoryzacji
+select e_mail, pass from users where e_mail = 'user1_1@gmail.com';
 select e_mail, pass from users where pass = 'user1_1pass';
 
-select login, pass from waiters where login = 'waiter_zap1';
+select login, pass, rest_name from waiters natural left join restaurants where login = 'waiter_zap1';
+select login, pass, rest_name from waiters natural left join restaurants where pass = 'waiter_zap1pass';
 
 ##
 ## Zapytania wykomywane od użytkowników
@@ -125,6 +127,8 @@ select login, pass from waiters where login = 'waiter_zap1';
 # zapytanie o wypisanie miast
 
 select * from cities;
+
+select city_name from cities natural left join users where e_mail = 'user1_1@gmail.com';
 
 # zapytanie o restaurację w danym mieście
 
@@ -138,6 +142,10 @@ select city_name as 'Miasto', rest_name as 'Nazwa restauracji;' from restaurants
 select city_name as 'Miasto', rest_name as 'Nazwa restauracji;' from restaurants natural left join cities where city_name = 'Katowice';
 
 # zapytania o ilość stolików w restauracji (pomijając rezerwacje "booking" i zajętość stolika "occupancy")
+
+# zapytanie o wszystkie stoliki w danej restauracji (bez sumowania ich)
+
+select nr_table, qty_chairs, smooking, outside from type_tables natural left join restaurants where rest_name = 'Zapiecek';
 
 # ilości stolików i ilości krzeseł przy tym stoliku w restauracji
 select city_name as 'Miasto', rest_name  as 'Nazwa restauracji', qty_chairs as 'Ilość krzeseł przy stoliku', count(qty_chairs) as 'Ilość stolików z określoną ilością krzeseł' from restaurants natural right join type_tables natural left join cities group by id_rest, qty_chairs;
@@ -160,6 +168,8 @@ select city_name as 'Miasto', rest_name as 'Nazwa restauracji', e_mail as 'Użyt
 select id_rest as 'Id restauracji', city_name as 'Miasto', rest_name as 'Nazwa restauracji', round(avg(value_rating),1) as 'Ocena' from restaurants natural left join rating natural left join cities where city_name = 'Warszawa' group by rest_name order by city_name desc, Ocena desc;
 
 select id_rest as 'Id restauracji', rest_name as 'Nazwa restauracji', type_cuisine as 'Rodzaj kuchni', round(avg(value_rating),1) as 'Ocena' from restaurants natural left join rating natural left join cities natural right join cuisines  where city_name = 'Warszawa' group by rest_name order by city_name desc, Ocena desc;
+
+select id_rest as 'Id restauracji', rest_name as 'Nazwa restauracji', type_cuisine as 'Rodzaj kuchni', round(avg(value_rating),1) as 'Ocena' from restaurants natural left join rating natural left join cities natural right join cuisines  where city_name = (select city_name from cities natural left join users where e_mail = 'user1_1@gmail.com') group by rest_name order by city_name desc, Ocena desc;
 
 # wyświetla restauracje ze średnią oceną powyżej x (np. 5.0)
 select city_name as 'Miasto', rest_name as 'Nazwa restauracji', round(avg(value_rating),1) as 'Ocena' from restaurants natural left join rating natural left join cities group by rest_name having round(avg(value_rating),1) > 5.0 order by city_name desc ;
