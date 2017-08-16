@@ -1,4 +1,4 @@
-# version_4.5 2017-08-09 00:37
+# version_4.5 2017-08-16 13:55
 
 ###
 ###  !!! BAZA DANYCH
@@ -88,7 +88,7 @@ create table booking (
     id_user int unsigned not null,
     id_table int unsigned not null,
 	date_book_start datetime not null,
-    date_book_stop datetime not null,
+    date_book_stop datetime,
     primary key (id_booking),
     foreign key (id_user) references users(id_user),
     foreign key (id_table) references type_tables(id_table)
@@ -117,8 +117,10 @@ create table occupancy (
 select e_mail, pass from users where e_mail = 'user1_1@gmail.com';
 select e_mail, pass from users where pass = 'user1_1pass';
 
-select login, pass, rest_name from waiters natural left join restaurants where login = 'waiter_zap1';
+select id_wait, login, pass, rest_name from waiters natural left join restaurants where login = 'waiter_zap1';
 select login, pass, rest_name from waiters natural left join restaurants where pass = 'waiter_zap1pass';
+
+select id_wait, login, pass from waiters where login = 'waiter_zap1';
 
 ##
 ## Zapytania wykomywane od użytkowników
@@ -177,15 +179,32 @@ select city_name as 'Miasto', rest_name as 'Nazwa restauracji', round(avg(value_
 # zapytania o rodzaj kuchni
 select city_name as 'Miasto', rest_name as 'Nazwa restauracji', type_cuisine as 'Rodzaj kuchni' from restaurants natural right join cuisines natural left join cities;
 
+#
+# Zapytania wykonywane od kelnerów
+#
+
+# wyświetlenie rezerwacji stolików dokonanych przez użytkowników (wszystkich rezerwacji, bez względu na datę)
+select e_mail, nr_table, date_book_start, date_book_stop from booking natural left join users natural left join type_tables order by e_mail;
+# wyświetlenie rezerwacji stolików dokonanych przez użytkowników w konkretnym dniu
+select e_mail, nr_table, date_book_start, date_book_stop from booking natural left join users natural left join type_tables where date_format(date_book_start, '%Y-%m-%d') = '2017-08-10' order by e_mail;
+# wyświetla rezerwację stolików w dniu dzisiejszym, aby sprawdzić ile jest dokonanych rezerwacji z wyprzedzeniem:
+select e_mail, nr_table, date_book_start, date_book_stop from booking natural left join users natural left join type_tables where date_format(date_book_start, '%Y-%m-%d') = current_date() order by e_mail;
+
 # zapytania o rezerwację stolika
-
-
 
 # zapytania o zajętość stolika
 
 # sprawdzenie statusu zajętości stolików 
-select city_name as 'Miasto', rest_name as 'Nazwa restauracji', nr_table as 'Numer stolika', qty_chairs 'Ilość krzeseł przy stoliku', case when time_occ_start < now() then 'stolik zajęty' end as 'Status zajętości stolika' from occupancy natural join type_tables natural join restaurants natural join cities;
-select city_name as 'Miasto', rest_name as 'Nazwa restauracji', nr_table as 'Numer stolika', qty_chairs 'Ilość krzeseł przy stoliku', 'stolik zajęty' from occupancy natural join type_tables natural join restaurants natural join cities;
+select city_name as 'Miasto', rest_name as 'Nazwa restauracji', nr_table as 'Numer stolika', qty_chairs as 'Ilość krzeseł przy stoliku', case when time_occ_start < now() then 'stolik zajęty' end as 'Status zajętości stolika' from occupancy natural join type_tables natural join restaurants natural join cities;
+select city_name as 'Miasto', rest_name as 'Nazwa restauracji', nr_table as 'Numer stolika', qty_chairs as 'Ilość krzeseł przy stoliku', 'stolik zajęty' from occupancy natural join type_tables natural join restaurants natural join cities;
+select rest_name, nr_table, login, qty_chairs, time_occ_start from occupancy natural join type_tables natural join restaurants natural left join waiters where rest_name = 'Zapiecek' and nr_table = '4';
+
+
+# sprawdzenie czy dany nr stolika danej restauracji jest już zajęty
+select rest_name, nr_table, login, qty_chairs, time_occ_start from occupancy natural join type_tables natural join restaurants natural left join waiters where nr_table = '2' and rest_name = 'Zapiecek';
+
+# sprawdzenie czy dany nr stolika jest w restauracji
+select rest_name, nr_table, qty_chairs from type_tables natural left join restaurants where nr_table = '1' and rest_name = 'Zapiecek'; 
 
 # sprawdzenie dostepności stolików odliczając te które są zajęte
 # poniższe zapytanie dotyczące konkretnej restauracji i konrketnego typou stolika
@@ -200,25 +219,33 @@ select count(qty_chairs) from type_tables natural left join restaurants where re
 select count(qty_chairs) from type_tables natural left join restaurants where rest_name = 'Zapiecek' and qty_chairs = 6 group by id_rest, qty_chairs;
 select count(qty_chairs) from type_tables natural left join restaurants where rest_name = 'Zapiecek' and qty_chairs = 8 group by id_rest, qty_chairs;
 
+# zapytania o ilość stolików w restauracji oraz o ilość stolików w restauaracji które są zajęte
+
+select count(nr_table) from type_tables natural left join restaurants where rest_name = 'Zapiecek' group by id_rest;
+
+select id_table, id_rest, nr_table, qty_chairs from type_tables natural left join restaurants where rest_name = 'Zapiecek';
+
+select count(nr_table) from occupancy natural left join restaurants natural left join type_tables where rest_name = 'Zapiecek' group by id_rest;
+
+select id_table, nr_table, id_rest from occupancy natural left join restaurants natural left join type_tables where rest_name = 'Zapiecek';
+
 # sprawdza ilość zajętych stolików danego typu w danej restauracji
 select city_name as 'Miasto', rest_name as 'Nazwa restauracji', qty_chairs as 'Ilość krzeseł przy stoliku', count(qty_chairs) as 'Ilosc zajętych stolików z określoną ilością krzeseł' from occupancy natural join restaurants natural join type_tables natural join cities group by rest_name, qty_chairs order by city_name desc, rest_name desc;
+
+select id_table, nr_table, rest_name from type_tables natural left join restaurants where nr_table = '1' and rest_name = 'Zapiecek';
 
 select count(qty_chairs) from occupancy natural left join restaurants natural left join type_tables where rest_name = 'Zapiecek' and qty_chairs = 2 group by rest_name, qty_chairs order by rest_name desc;
 select count(qty_chairs) from occupancy natural left join restaurants natural left join type_tables where rest_name = 'Zapiecek' and qty_chairs = 4 group by rest_name, qty_chairs order by rest_name desc;
 select count(qty_chairs) from occupancy natural left join restaurants natural left join type_tables where rest_name = 'Zapiecek' and qty_chairs = 6 group by rest_name, qty_chairs order by rest_name desc;
 select count(qty_chairs) from occupancy natural left join restaurants natural left join type_tables where rest_name = 'Zapiecek' and qty_chairs = 8 group by rest_name, qty_chairs order by rest_name desc;
 
-#
-# Zapytania wykonywane od kelnerów
-#
+select city_name as 'Miasto', rest_name as 'Nazwa restauracji', nr_table as 'Numer stolika', qty_chairs as 'Ilość krzeseł przy stoliku', case when time_occ_start < now() then 'stolik zajęty' end as 'Status zajętości stolika' from occupancy natural join type_tables natural join restaurants natural join cities;
 
-# wyświetlenie rezerwacji stolików dokonanych przez użytkowników (wszystkich rezerwacji, bez względu na datę)
-select e_mail, nr_table, date_book_start, date_book_stop from booking natural left join users natural left join type_tables order by e_mail;
-# wyświetlenie rezerwacji stolików dokonanych przez użytkowników w konkretnym dniu
-select e_mail, nr_table, date_book_start, date_book_stop from booking natural left join users natural left join type_tables where date_format(date_book_start, '%Y-%m-%d') = '2017-08-10' order by e_mail;
-# wyświetla rezerwację stolików w dniu dzisiejszym, aby sprawdzić ile jest dokonanych rezerwacji z wyprzedzeniem:
-select e_mail, nr_table, date_book_start, date_book_stop from booking natural left join users natural left join type_tables where date_format(date_book_start, '%Y-%m-%d') = current_date() order by e_mail;
+select city_name as 'Miasto', rest_name as 'Nazwa restauracji', nr_table as 'Numer stolika', qty_chairs as 'Ilość krzeseł przy stoliku', case when time_occ_start < now() then 'stolik zajęty' end as 'Status zajętości stolika' from occupancy natural join type_tables natural join restaurants natural join cities;
 
+# pokazuje stoliki obsłMugiwane przez konkretnego kelnera
+
+select nr_table, qty_chairs from occupancy natural left join type_tables natural left join waiters where login = 'waiter_zap1' order by nr_table;
 
 ###
 ###  !!! Zapytania proste do pomocy
