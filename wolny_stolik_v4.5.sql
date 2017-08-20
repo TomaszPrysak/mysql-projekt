@@ -1,4 +1,4 @@
-# version_4.5 2017-08-16 13:55
+# version_4.5 2017-08-20 01:54
 
 ###
 ###  !!! BAZA DANYCH
@@ -87,11 +87,13 @@ create table booking (
 	id_booking int unsigned not null auto_increment,
     id_user int unsigned not null,
     id_table int unsigned not null,
+    id_wait int unsigned,
 	date_book_start datetime not null,
     date_book_stop datetime,
     primary key (id_booking),
     foreign key (id_user) references users(id_user),
-    foreign key (id_table) references type_tables(id_table)
+    foreign key (id_table) references type_tables(id_table),
+    foreign key (id_wait) references waiters(id_wait)
 );
 
 # tabela zajętości stolika w danej restauracj w chwili obecnej
@@ -114,7 +116,7 @@ create table occupancy (
 ##
 
 # zapytanie do bazy danych w celu wyszukania konkretnego użytkownika jego loginu i hasła, wykorzystane w celu autoryzacji
-select e_mail, pass from users where e_mail = 'user1_1@gmail.com';
+select id_user, e_mail, pass from users where e_mail = 'tomek@tomek.pl';
 select e_mail, pass from users where pass = 'user1_1pass';
 
 select id_wait, login, pass, rest_name from waiters natural left join restaurants where login = 'waiter_zap1';
@@ -147,7 +149,7 @@ select city_name as 'Miasto', rest_name as 'Nazwa restauracji;' from restaurants
 
 # zapytanie o wszystkie stoliki w danej restauracji (bez sumowania ich)
 
-select nr_table, qty_chairs, smooking, outside from type_tables natural left join restaurants where rest_name = 'Zapiecek';
+select id_table, nr_table, qty_chairs from type_tables natural left join restaurants where rest_name = 'Zapiecek';
 
 # ilości stolików i ilości krzeseł przy tym stoliku w restauracji
 select city_name as 'Miasto', rest_name  as 'Nazwa restauracji', qty_chairs as 'Ilość krzeseł przy stoliku', count(qty_chairs) as 'Ilość stolików z określoną ilością krzeseł' from restaurants natural right join type_tables natural left join cities group by id_rest, qty_chairs;
@@ -229,6 +231,38 @@ select count(nr_table) from occupancy natural left join restaurants natural left
 
 select id_table, nr_table, id_rest from occupancy natural left join restaurants natural left join type_tables where rest_name = 'Zapiecek';
 
+select id_table, nr_table, id_rest, rest_name from booking natural left join type_tables natural left join restaurants;
+
+select timestampdiff(minute, now(), date_book_start) from booking natural left join type_tables natural left join restaurants where rest_name = 'Zapiecek' and id_table = '8';
+
+# sprawdzenie jeżeli zbliża się rezerwacja stolika
+select case when timestampdiff(minute, now(), date_book_start) < 240 and  timestampdiff(minute, now(), date_book_start) >= 30 then concat_ws(' ', id_table, ' Uwaga: stolik zarezerwowany w dniu dziejszym zajęty od', date_format(date_book_start, '%H:%i')) end from booking where id_table = '1';
+
+select case when timestampdiff(minute, now(), date_book_start) >= 30 then concat_ws(' ', id_table, ' Uwaga: stolik zarezerwowany w dniu dziejszym zajęty od', date_format(date_book_start, '%H:%i')) end from booking where id_table = '1';
+
+# jeżeli rezerwacja z przyszłości się zbliża i czas jej jest jeszcze większy niż 30 minut to stolik jest dostępny ---- na razie nie rozważać
+select case when timestampdiff(minute, now(), date_book_start) >= 30 then 1 end from booking where id_table = '1';
+
+# jeżeli rezerwacja z przyszłości się zbliża i jej czas jest w granicy 30 minu - 0 minut to tolik jest już niedostępny ---- na razie nie rozważać
+select case when timestampdiff(minute, now(), date_book_start) < 30 and timestampdiff(minute, now(), date_book_start) >= 0 then 0 end from booking where id_table = '1';
+
+select case when timestampdiff(minute, now(), '2017-08-17 20:00') < 240 and timestampdiff(minute, now(), '2017-08-17 20:00') >= 30 then 1 end from booking where id_table = '1';
+
+# sprawdzenie czy zaklepanie stolika miesci się w 15 minutach
+select case when timestampdiff(minute, now(), date_book_start) <= 0 and timestampdiff(minute, now(), date_book_start) >= -15 then concat_ws(' ',timestampdiff(minute, now(), date_book_start),'stolik zaklepany') end from booking where id_table = '8';
+
+# jeżeli zaklepanie się mieści w granicy 15 minut to stolik jest niedostepny
+select case when timestampdiff(minute, now(), date_book_start) <= 0 and timestampdiff(minute, now(), date_book_start) >= -15 then 1 else 0 end from booking where id_table = '10';
+
+#jeżel od zaklepania mineło więcej niż 15 minut to stolik jest znowu dostępny
+select case when timestampdiff(minute, now(), date_book_start) <= -15 then '1' end from booking where id_table = '8';
+
+# sprawdzenie czy w tabeli zajętości wystepuje dany stolik w restauracji
+select * from occupancy where id_table = '5';
+
+
+
+
 # sprawdza ilość zajętych stolików danego typu w danej restauracji
 select city_name as 'Miasto', rest_name as 'Nazwa restauracji', qty_chairs as 'Ilość krzeseł przy stoliku', count(qty_chairs) as 'Ilosc zajętych stolików z określoną ilością krzeseł' from occupancy natural join restaurants natural join type_tables natural join cities group by rest_name, qty_chairs order by city_name desc, rest_name desc;
 
@@ -246,6 +280,8 @@ select city_name as 'Miasto', rest_name as 'Nazwa restauracji', nr_table as 'Num
 # pokazuje stoliki obsłMugiwane przez konkretnego kelnera
 
 select nr_table, qty_chairs from occupancy natural left join type_tables natural left join waiters where login = 'waiter_zap1' order by nr_table;
+
+
 
 ###
 ###  !!! Zapytania proste do pomocy
