@@ -1,4 +1,4 @@
-# version_4.5 2017-08-20 01:54
+# version_4.5 2017-08-20 19:21
 
 ###
 ###  !!! BAZA DANYCH
@@ -82,18 +82,16 @@ create table type_tables(
     foreign key (id_rest) references restaurants(id_rest)
 );
 
-# tabela rezerwacji
+# tabela rezerwacji 
 create table booking (
 	id_booking int unsigned not null auto_increment,
     id_user int unsigned not null,
     id_table int unsigned not null,
-    id_wait int unsigned,
 	date_book_start datetime not null,
     date_book_stop datetime,
     primary key (id_booking),
     foreign key (id_user) references users(id_user),
-    foreign key (id_table) references type_tables(id_table),
-    foreign key (id_wait) references waiters(id_wait)
+    foreign key (id_table) references type_tables(id_table)
 );
 
 # tabela zajętości stolika w danej restauracj w chwili obecnej
@@ -233,7 +231,7 @@ select id_table, nr_table, id_rest from occupancy natural left join restaurants 
 
 select id_table, nr_table, id_rest, rest_name from booking natural left join type_tables natural left join restaurants;
 
-select timestampdiff(minute, now(), date_book_start) from booking natural left join type_tables natural left join restaurants where rest_name = 'Zapiecek' and id_table = '8';
+select timestampdiff(minute, now(), date_book_start) from booking natural left join type_tables natural left join restaurants where rest_name = 'Zapiecek' and id_table = '2';
 
 # sprawdzenie jeżeli zbliża się rezerwacja stolika
 select case when timestampdiff(minute, now(), date_book_start) < 240 and  timestampdiff(minute, now(), date_book_start) >= 30 then concat_ws(' ', id_table, ' Uwaga: stolik zarezerwowany w dniu dziejszym zajęty od', date_format(date_book_start, '%H:%i')) end from booking where id_table = '1';
@@ -252,7 +250,15 @@ select case when timestampdiff(minute, now(), '2017-08-17 20:00') < 240 and time
 select case when timestampdiff(minute, now(), date_book_start) <= 0 and timestampdiff(minute, now(), date_book_start) >= -15 then concat_ws(' ',timestampdiff(minute, now(), date_book_start),'stolik zaklepany') end from booking where id_table = '8';
 
 # jeżeli zaklepanie się mieści w granicy 15 minut to stolik jest niedostepny
-select case when timestampdiff(minute, now(), date_book_start) <= 0 and timestampdiff(minute, now(), date_book_start) >= -15 then 1 else 0 end from booking where id_table = '10';
+select case when timestampdiff(minute, now(), date_book_start) > 90 then 3 when timestampdiff(minute, now(), date_book_start) > 0 and timestampdiff(minute, now(), date_book_start) <= 90 then 2 when timestampdiff(minute, now(), date_book_start) <= 0 and timestampdiff(minute, now(), date_book_start) >= -15 then 1 else 0 end from booking where id_table = '6';
+
+select case when timestampdiff(minute, now(), date_book_start) > 0 then 2 end from booking where id_table = '9';
+
+select date_format(date_book_start, "%H:%i") from booking where timestampdiff(minute, now(), date_book_start) <= 0 and timestampdiff(minute, now(), date_book_start) >= -15 and id_table = '6';
+
+select date_format(date_book_start, "%H:%i") from booking where timestampdiff(minute, now(), date_book_start) > 0 and timestampdiff(minute, now(), date_book_start) <= 90 and id_table = '8';
+
+delete from booking where id_table = 8 and timestampdiff(minute, now(), date_book_start) < 0;
 
 #jeżel od zaklepania mineło więcej niż 15 minut to stolik jest znowu dostępny
 select case when timestampdiff(minute, now(), date_book_start) <= -15 then '1' end from booking where id_table = '8';
@@ -260,7 +266,7 @@ select case when timestampdiff(minute, now(), date_book_start) <= -15 then '1' e
 # sprawdzenie czy w tabeli zajętości wystepuje dany stolik w restauracji
 select * from occupancy where id_table = '5';
 
-
+select rest_name, id_table, nr_table, qty_chairs, e_mail, date_book_start from restaurants natural join type_tables natural join users natural join booking where id_table = '6';
 
 
 # sprawdza ilość zajętych stolików danego typu w danej restauracji
