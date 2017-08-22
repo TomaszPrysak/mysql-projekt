@@ -1,12 +1,12 @@
-# version_4.5 2017-08-20 19:21
+# version_5.0 2017-08-23 00:38
 
 ###
 ###  !!! BAZA DANYCH
 ###
 
-create database wolny_stolik;
+create database wolny_stolik_5;
 
-use wolny_stolik;
+use wolny_stolik_5;
 
 ###
 ###  !!! TABELE
@@ -82,14 +82,25 @@ create table type_tables(
     foreign key (id_rest) references restaurants(id_rest)
 );
 
-# tabela rezerwacji 
-create table booking (
-	id_booking int unsigned not null auto_increment,
+# tabela rezerwacji w tym momencie
+create table booking_now (
+	id_booking_now int unsigned not null auto_increment,
+    id_user int unsigned not null,
+    id_table int unsigned not null,
+	date_book_now datetime not null,
+    primary key (id_booking_now),
+    foreign key (id_user) references users(id_user),
+    foreign key (id_table) references type_tables(id_table)
+);
+
+# tabela rezerwacji na przyszłość
+create table booking_future (
+	id_booking_future int unsigned not null auto_increment,
     id_user int unsigned not null,
     id_table int unsigned not null,
 	date_book_start datetime not null,
-    date_book_stop datetime,
-    primary key (id_booking),
+    date_book_stop datetime not null,
+    primary key (id_booking_future),
     foreign key (id_user) references users(id_user),
     foreign key (id_table) references type_tables(id_table)
 );
@@ -231,42 +242,42 @@ select id_table, nr_table, id_rest from occupancy natural left join restaurants 
 
 select id_table, nr_table, id_rest, rest_name from booking natural left join type_tables natural left join restaurants;
 
-select timestampdiff(minute, now(), date_book_start) from booking natural left join type_tables natural left join restaurants where rest_name = 'Zapiecek' and id_table = '2';
+select timestampdiff(minute, now(), date_book_now) from booking_now natural left join type_tables natural left join restaurants where rest_name = 'Zapiecek' and id_table = '8';
 
 # sprawdzenie jeżeli zbliża się rezerwacja stolika
-select case when timestampdiff(minute, now(), date_book_start) < 240 and  timestampdiff(minute, now(), date_book_start) >= 30 then concat_ws(' ', id_table, ' Uwaga: stolik zarezerwowany w dniu dziejszym zajęty od', date_format(date_book_start, '%H:%i')) end from booking where id_table = '1';
+select case when timestampdiff(minute, now(), date_book_now) < 240 and  timestampdiff(minute, now(), date_book_now) >= 30 then concat_ws(' ', id_table, ' Uwaga: stolik zarezerwowany w dniu dziejszym zajęty od', date_format(date_book_now, '%H:%i')) end from booking_now where id_table = '1';
 
-select case when timestampdiff(minute, now(), date_book_start) >= 30 then concat_ws(' ', id_table, ' Uwaga: stolik zarezerwowany w dniu dziejszym zajęty od', date_format(date_book_start, '%H:%i')) end from booking where id_table = '1';
+select case when timestampdiff(minute, now(), date_book_now) >= 30 then concat_ws(' ', id_table, ' Uwaga: stolik zarezerwowany w dniu dziejszym zajęty od', date_format(date_book_now, '%H:%i')) end from booking_now where id_table = '1';
 
 # jeżeli rezerwacja z przyszłości się zbliża i czas jej jest jeszcze większy niż 30 minut to stolik jest dostępny ---- na razie nie rozważać
-select case when timestampdiff(minute, now(), date_book_start) >= 30 then 1 end from booking where id_table = '1';
+select case when timestampdiff(minute, now(), date_book_now) >= 30 then 1 end from booking_now where id_table = '1';
 
 # jeżeli rezerwacja z przyszłości się zbliża i jej czas jest w granicy 30 minu - 0 minut to tolik jest już niedostępny ---- na razie nie rozważać
-select case when timestampdiff(minute, now(), date_book_start) < 30 and timestampdiff(minute, now(), date_book_start) >= 0 then 0 end from booking where id_table = '1';
+select case when timestampdiff(minute, now(), date_book_now) < 30 and timestampdiff(minute, now(), date_book_now) >= 0 then 0 end from booking_now where id_table = '1';
 
-select case when timestampdiff(minute, now(), '2017-08-17 20:00') < 240 and timestampdiff(minute, now(), '2017-08-17 20:00') >= 30 then 1 end from booking where id_table = '1';
+select case when timestampdiff(minute, now(), '2017-08-17 20:00') < 240 and timestampdiff(minute, now(), '2017-08-17 20:00') >= 30 then 1 end from booking_now where id_table = '1';
 
 # sprawdzenie czy zaklepanie stolika miesci się w 15 minutach
-select case when timestampdiff(minute, now(), date_book_start) <= 0 and timestampdiff(minute, now(), date_book_start) >= -15 then concat_ws(' ',timestampdiff(minute, now(), date_book_start),'stolik zaklepany') end from booking where id_table = '8';
+select case when timestampdiff(minute, now(), date_book_now) <= 0 and timestampdiff(minute, now(), date_book_now) >= -15 then concat_ws(' ',timestampdiff(minute, now(), date_book_now),'stolik zaklepany') end from booking_now where id_table = '8';
 
 # jeżeli zaklepanie się mieści w granicy 15 minut to stolik jest niedostepny
-select case when timestampdiff(minute, now(), date_book_start) > 90 then 3 when timestampdiff(minute, now(), date_book_start) > 0 and timestampdiff(minute, now(), date_book_start) <= 90 then 2 when timestampdiff(minute, now(), date_book_start) <= 0 and timestampdiff(minute, now(), date_book_start) >= -15 then 1 else 0 end from booking where id_table = '6';
+select case when timestampdiff(minute, now(), date_book_now) > 90 then 3 when timestampdiff(minute, now(), date_book_now) > 0 and timestampdiff(minute, now(), date_book_now) <= 90 then 2 when timestampdiff(minute, now(), date_book_now) <= 0 and timestampdiff(minute, now(), date_book_now) >= -15 then 1 else 0 end from booking_now where id_table = '7';
 
-select case when timestampdiff(minute, now(), date_book_start) > 0 then 2 end from booking where id_table = '9';
+select case when timestampdiff(minute, now(), date_book_now) > 0 then 2 end from booking_now where id_table = '9';
 
-select date_format(date_book_start, "%H:%i") from booking where timestampdiff(minute, now(), date_book_start) <= 0 and timestampdiff(minute, now(), date_book_start) >= -15 and id_table = '6';
+select date_format(date_book_now, "%H:%i") from booking_now where timestampdiff(minute, now(), date_book_now) <= 0 and timestampdiff(minute, now(), date_book_now) >= -15 and id_table = '6';
 
-select date_format(date_book_start, "%H:%i") from booking where timestampdiff(minute, now(), date_book_start) > 0 and timestampdiff(minute, now(), date_book_start) <= 90 and id_table = '8';
+select date_format(date_book_now, "%H:%i") from booking_now where timestampdiff(minute, now(), date_book_now) > 0 and timestampdiff(minute, now(), date_book_now) <= 90 and id_table = '8';
 
-delete from booking where id_table = 8 and timestampdiff(minute, now(), date_book_start) < 0;
+delete from booking_now where id_table = '4' and timestampdiff(minute, now(), date_book_now) < 0;
 
 #jeżel od zaklepania mineło więcej niż 15 minut to stolik jest znowu dostępny
-select case when timestampdiff(minute, now(), date_book_start) <= -15 then '1' end from booking where id_table = '8';
+select case when timestampdiff(minute, now(), date_book_now) <= -15 then '1' end from booking_now where id_table = '8';
 
 # sprawdzenie czy w tabeli zajętości wystepuje dany stolik w restauracji
 select * from occupancy where id_table = '5';
 
-select rest_name, id_table, nr_table, qty_chairs, e_mail, date_book_start from restaurants natural join type_tables natural join users natural join booking where id_table = '6';
+select rest_name, id_table, nr_table, qty_chairs, e_mail, date_book_now from restaurants natural join type_tables natural join users natural join booking_now where id_table = '6';
 
 
 # sprawdza ilość zajętych stolików danego typu w danej restauracji
@@ -301,7 +312,8 @@ select * from cuisines order by id_cuisine;
 select * from type_tables order by id_table;
 select * from users order by id_user;
 select * from restaurants order by id_rest;
-select * from booking order by id_booking;
+select * from booking_now order by id_booking_now;
+select * from booking_future order by id_booking_future;
 select * from rating order by id_rating;
 select * from occupancy order by id_occ;
 select * from waiters order by id_wait;

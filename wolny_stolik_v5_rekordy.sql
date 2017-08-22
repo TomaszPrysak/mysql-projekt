@@ -370,7 +370,7 @@ insert into type_tables (id_rest, nr_table, qty_chairs, smooking, outside) value
 insert into type_tables (id_rest, nr_table, qty_chairs, smooking, outside) values (26,10,8,false,false);
 
  # rekordy w tabeli oceny
- insert into rating (id_user, id_rest, value_rating) values (1,1,6.2);
+insert into rating (id_user, id_rest, value_rating) values (1,1,6.2);
 insert into rating (id_user, id_rest, value_rating) values (2,1,7.7);
 insert into rating (id_user, id_rest, value_rating) values (3,1,3.4);
 insert into rating (id_user, id_rest, value_rating) values (4,1,5.7);
@@ -475,17 +475,23 @@ insert into rating (id_user, id_rest, value_rating) values (40,26,6.9);
 insert into rating (id_user, id_rest, value_rating) values (36,26,8.3);
 insert into rating (id_user, id_rest, value_rating) values (37,26,7.9);
 
-# rekordy w tabeli rezerwacje
-insert into booking (id_user, id_table, date_book_start, date_book_stop) values (1, 8, '2017-07-31 20:00', '2017-07-31 22:00');
-insert into booking (id_user, id_table, date_book_start, date_book_stop) values (2, 8, '2017-08-10 20:00', '2017-08-10 22:00');
-insert into booking (id_user, id_table, date_book_start, date_book_stop) values (3, 8, '2017-08-10 20:00', '2017-08-10 22:00');
+# rekordy w tabeli rezerwacje w tym momencie
+insert into booking_now (id_user, id_table, date_book_now) values (1, 7, '2017-08-23 00:10:00');
+insert into booking_now (id_user, id_table, date_book_now) values (1, 7, now());
+
+# rekordy w tabeli rezerwacje na przyszłosć
+insert into booking_future (id_user, id_table, date_book_start, date_book_stop) values (2, 9, '2017-08-25 20:00', '2017-08-25 22:00');
+insert into booking_future (id_user, id_table, date_book_start, date_book_stop) values (2, 8, '2017-08-20 17:00', '2017-08-20 19:00');
 
 # rekordy w tabeli zajętości
-insert into occupancy (id_table, id_wait, time_occ_start) values (7, 1, now());
-insert into occupancy (id_table, id_wait, time_occ_start) values (1, 2, now());
-insert into occupancy (id_table, id_wait, time_occ_start) values (2, 3, now());
-insert into occupancy (id_table, id_wait, time_occ_start) values (3, 4, now());
-insert into occupancy (id_table, id_wait, time_occ_start) values (5, 5, now());
-insert into occupancy (id_table, id_wait, time_occ_start) values (8, 2, now());
-insert into occupancy (id_table, id_wait, time_occ_start) values (6, 1, now());
+insert into occupancy (id_table, id_wait, time_occ_start) values (1, 1, now());
+insert into occupancy (id_table, id_wait, time_occ_start) values (2, 2, now());
+insert into occupancy (id_table, id_wait, time_occ_start) values (3, 3, now());
 insert into occupancy (id_table, id_wait, time_occ_start) values (4, 4, now());
+insert into occupancy (id_table, id_wait, time_occ_start) values (5, 5, now());
+insert into occupancy (id_table, id_wait, time_occ_start) values (6, 2, now());
+insert into occupancy (id_table, id_wait, time_occ_start) values (7, 1, now());
+insert into occupancy (id_table, id_wait, time_occ_start) values (8, 4, now());
+insert into occupancy (id_table, id_wait, time_occ_start) values (9, 4, now());
+insert into occupancy (id_table, id_wait, time_occ_start) values (10, 4, now());
+insert into occupancy (id_table, id_wait, time_occ_start) values (20, 4, now());
